@@ -4,7 +4,9 @@ const appFunc = express();
 const appProcess = require("process");
 const connectFunc = require("./db/connectMongo");
 const authRouter = require("./routes/authRoutes");
+const cookieParser = require("cookie-parser");
 
+appFunc.use(cookieParser(appProcess.env.JWT_SECRET));
 appFunc.use(express.json());
 appFunc.use("/intcommapi/v1/auth", authRouter);
 
