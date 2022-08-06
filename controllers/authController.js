@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const CustomError = require("../errors");
+const CustomError = require("../errors/index");
 const { StatusCodes } = require("http-status-codes");
 const {
   attachCookieToResponse,
@@ -22,28 +22,38 @@ const register = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ user: tokenUser });
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
     throw new CustomError.BadRequestError(
-      "PLease provide username and password"
+      "Please provide username and password"
     );
   }
 
-  const userTryingToLog = User.findOne({ username });
+  const userTryingToLog = await User.findOne({ username });
 
   if (!userTryingToLog) {
     throw new CustomError.UnauthenticatedError(
       "Username does not exist. You have to register or provide valid username "
     );
   }
-  const tokenUser = createTokenUser(userTryingToLog);
-  attachCookiesToResponse({ res, user: userTryingToLog });
-  console.log(req.body.password);
-  console.log(userTryingToLog);
+  const isPasswordCorrect = await userTryingToLog.comparePassword(password);
+  if (!isPasswordCorrect) {
+    throw new CustomError.UnauthenticatedError("Invalid Credentials");
+  }
 
-  res.status(StatusCodes.OK).json({ user: userTryingToLog });
+  const tokenUser = createTokenUser(userTryingToLog);
+  attachCookieToResponse({ res, user: tokenUser });
+  res.status(StatusCodes.OK).json({ userTryingToLog });
 };
 
-module.exports = { register, login };
+const logout = async (rq, res) => {
+  res.cookie("token", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now() + 1000),
+  });
+  res.status(StatusCodes.OK).json({ msg: "user logged out!" });
+};
+
+module.exports = { register, login, logout };
