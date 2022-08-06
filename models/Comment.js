@@ -11,10 +11,8 @@ const CommentSchema = new mongoose.Schema(
     score: {
       type: Number,
     },
-    user: {
-      username: {
-        type: String,
-      },
+    username: {
+      type: String,
     },
   },
   { timestamps: true }
