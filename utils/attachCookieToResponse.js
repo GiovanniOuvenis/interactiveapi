@@ -19,7 +19,10 @@ const attachCookieToResponse = ({ res, user }) => {
   });
 };
 
+const isTokenValid = ({ token }) => jwt.verify(token, process.env.JWT_SECRET);
+
 module.exports = {
   createJWT,
   attachCookieToResponse,
+  isTokenValid,
 };
