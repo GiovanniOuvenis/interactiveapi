@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const User = require("./User");
+const { UserSchema } = require("./User");
 
 const CommentSchema = new mongoose.Schema(
   {
@@ -11,8 +11,11 @@ const CommentSchema = new mongoose.Schema(
     score: {
       type: Number,
     },
-    username: {
-      type: String,
+    user: {
+      type: [UserSchema],
+    },
+    replies: {
+      type: Array,
     },
   },
   { timestamps: true }
