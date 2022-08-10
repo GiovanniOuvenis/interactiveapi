@@ -57,7 +57,26 @@ const deleteComment = async (req, res, next) => {
   res.status(StatusCodes.OK).json({ msg: "comment succsefully deleted " });
 };
 
-const replyToComment = async (req, res) => {};
+const replyToComment = async (req, res) => {
+  const { id } = req.params;
+  const { content, username } = req.body;
+  const commentToReply = await Comment.findOne({ _id: id });
+  const whoReplies = await User.findOne({ username });
+  const replyScore = 0;
+  const replyReplies = [];
+
+  const replyDocument = await Comment.create({
+    content: content,
+    score: replyScore,
+    user: whoReplies,
+    replies: replyReplies,
+  });
+
+  const commentWithReply = await commentToReply.replies.push(replyDocument);
+  await commentToReply.save();
+
+  res.send("setup is ok");
+};
 module.exports = {
   createComment,
   deleteComment,

@@ -10,12 +10,12 @@ const {
 const { authenticateUser } = require("../middleware/authenticate");
 
 router
-  .route("/comment/allcoments")
+  .route("/comments")
   .post(authenticateUser, createComment)
   .get(getAllComments);
 
 router
-  .route("/comment/:id")
+  .route("/comments/:id")
   .post(authenticateUser, replyToComment)
   .patch(changeScore)
   .delete(deleteComment);
