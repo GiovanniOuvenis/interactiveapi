@@ -72,10 +72,10 @@ const replyToComment = async (req, res) => {
     replies: replyReplies,
   });
 
-  const commentWithReply = await commentToReply.replies.push(replyDocument);
+  await commentToReply.replies.push(replyDocument);
   await commentToReply.save();
 
-  res.send("setup is ok");
+  res.status(StatusCodes.CREATED).json({ commentWithReplies: commentToReply });
 };
 module.exports = {
   createComment,
