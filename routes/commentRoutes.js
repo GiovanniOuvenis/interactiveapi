@@ -4,19 +4,20 @@ const {
   createComment,
   deleteComment,
   getAllComments,
-  getSingleComment,
+  changeScore,
+  replyToComment,
 } = require("../controllers/commentController");
 const { authenticateUser } = require("../middleware/authenticate");
 
 router
   .route("/comment/allcoments")
-  .get(getAllComments)
-  .post(authenticateUser, createComment);
+  .post(authenticateUser, createComment)
+  .get(getAllComments);
 
 router
   .route("/comment/:id")
-  .post(authenticateUser)
-  .get(getSingleComment)
+  .post(authenticateUser, replyToComment)
+  .patch(changeScore)
   .delete(deleteComment);
 
 module.exports = router;

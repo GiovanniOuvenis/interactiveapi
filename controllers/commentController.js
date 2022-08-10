@@ -19,14 +19,27 @@ const createComment = async (req, res) => {
 };
 
 const getAllComments = async (req, res) => {
-  const allComments = await Comment.find({});
-
-  res.status(StatusCodes.OK).json({ comments: allComments });
+  const result = await Comment.aggregate([
+    {
+      $sort: {
+        score: -1,
+      },
+    },
+  ]);
+  res.status(StatusCodes.OK).json({ comments: result });
 };
 
-const getSingleComment = async (req, res) => {
-  console.log(req.params);
-  res.send("comment found");
+const changeScore = async (req, res) => {
+  const { id } = req.params;
+  const { increase } = req.body;
+  const currentComment = await Comment.findOne({ _id: id });
+  if (increase === "true") {
+    currentComment.score++;
+  } else {
+    currentComment.score--;
+  }
+  await currentComment.save();
+  res.status(StatusCodes.OK).json({ score: currentComment.score });
 };
 
 const deleteComment = async (req, res, next) => {
@@ -44,9 +57,11 @@ const deleteComment = async (req, res, next) => {
   res.status(StatusCodes.OK).json({ msg: "comment succsefully deleted " });
 };
 
+const replyToComment = async (req, res) => {};
 module.exports = {
   createComment,
   deleteComment,
   getAllComments,
-  getSingleComment,
+  changeScore,
+  replyToComment,
 };
