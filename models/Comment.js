@@ -12,7 +12,7 @@ const CommentSchema = new mongoose.Schema(
       type: Number,
     },
     user: {
-      type: [UserSchema],
+      type: { username: String },
     },
     replies: {
       type: Array,
