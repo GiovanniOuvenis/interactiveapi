@@ -23,7 +23,6 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  console.log("login - user");
   const { username, password } = req.body;
 
   if (!username || !password) {
