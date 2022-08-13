@@ -19,7 +19,7 @@ const register = async (req, res) => {
   const newUser = await User.create({ username, password });
   const tokenUser = createTokenUser(newUser);
   attachCookieToResponse({ res, user: tokenUser });
-  res.status(StatusCodes.CREATED).json({ user: tokenUser });
+  res.status(StatusCodes.CREATED).json({ user: tokenUser.username });
 };
 
 const login = async (req, res) => {
@@ -45,10 +45,11 @@ const login = async (req, res) => {
 
   const tokenUser = createTokenUser(userTryingToLog);
   attachCookieToResponse({ res, user: tokenUser });
-  res.status(StatusCodes.OK).json({ userTryingToLog });
+  res.status(StatusCodes.OK).json({ login: true });
 };
 
 const logout = async (rq, res) => {
+  console.log("logout");
   res.cookie("token", "logout", {
     httpOnly: true,
     expires: new Date(Date.now() + 1000),

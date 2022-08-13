@@ -4,21 +4,20 @@ const { User } = require("../models/User");
 const CustomError = require("../errors");
 
 const createComment = async (req, res) => {
-  const { content, username } = req.body;
-  const initialScore = 0;
-  const initialReplies = [];
-  const who = await User.findOne({ username });
-
+  const { username: requestUsername, body } = req;
+  const { content } = body;
+  const { username, _id } = await User.findOne({ username: requestUsername });
   const newComment = await Comment.create({
     content,
-    score: initialScore,
-    user: who,
-    replies: initialReplies,
+    score: 0,
+    user: { username, _id },
+    replies: [],
   });
-  res.status(StatusCodes.CREATED).json({ comment: newComment });
+  res.status(StatusCodes.CREATED).json({ comment: true });
 };
 
 const getAllComments = async (req, res) => {
+  console.log("get all comments");
   const result = await Comment.aggregate([
     {
       $sort: {
