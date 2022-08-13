@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 const {
   createComment,
   deleteComment,
@@ -8,6 +7,8 @@ const {
   replyToComment,
 } = require("../controllers/commentController");
 const { authenticateUser } = require("../middleware/authenticate");
+
+const router = express.Router();
 
 router
   .route("/comments")

@@ -9,7 +9,7 @@ const authenticateUser = async (req, res, next) => {
 
   try {
     const { username } = isTokenValid({ token });
-    req.username = { username };
+    req.username = username;
   } catch (error) {
     throw new CustomError.UnauthenticatedError("Authentication Invalid");
   }
