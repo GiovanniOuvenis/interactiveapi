@@ -18,6 +18,7 @@ const createComment = async (req, res) => {
 };
 
 const getAllComments = async (req, res) => {
+  console.log("get all comments");
   const result = await Comment.aggregate([
     {
       $sort: {
