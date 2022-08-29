@@ -9,11 +9,13 @@ const commentRouter = require("./routes/commentRoutes");
 const cookieParser = require("cookie-parser");
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandling = require("./middleware/error-handler");
+const fileUpload = require("express-fileupload");
 const cors = require("cors");
 // Lets assoume the code was added
 app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser(appProcess.env.JWT_SECRET));
 app.use("/intcommapi/v1/auth", authRouter);
 app.use("/intcommapi/v1", commentRouter);

@@ -7,6 +7,11 @@ const {
 } = require("../utils/attachCookieToResponse");
 const createTokenUser = require("../utils/createTokenUser");
 
+const uploadImage = async (req, res) => {
+  console.log(req.files);
+  res.status(StatusCodes.OK).json({ msg: "ok uploaded" });
+};
+
 const register = async (req, res) => {
   const { username, password } = req.body;
 
@@ -58,4 +63,4 @@ const logout = async (rq, res) => {
   res.status(StatusCodes.OK).json({ msg: "user logged out!" });
 };
 
-module.exports = { register, login, logout };
+module.exports = { register, login, logout, uploadImage };
