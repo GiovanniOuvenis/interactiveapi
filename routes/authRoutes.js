@@ -1,13 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const {
-  register,
-  login,
-  logout,
-  uploadImage,
-} = require("../controllers/authController");
+const { register, login, logout } = require("../controllers/authController");
 
-router.post("/upload", uploadImage);
+router.post("/register", register);
 router.post("/login", login);
 router.get("/logout", logout);
 

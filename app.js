@@ -10,11 +10,20 @@ const cookieParser = require("cookie-parser");
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandling = require("./middleware/error-handler");
 const fileUpload = require("express-fileupload");
+const cloudinary = require("cloudinary").v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+  secure: true,
+});
 const cors = require("cors");
 // Lets assoume the code was added
 app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
+app.use(express.static("./public"));
+
 app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser(appProcess.env.JWT_SECRET));
 app.use("/intcommapi/v1/auth", authRouter);
