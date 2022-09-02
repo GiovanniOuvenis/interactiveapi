@@ -4,6 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 const path = require("path");
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
+
 const {
   attachCookieToResponse,
   createJWT,
@@ -38,6 +39,7 @@ const createTokenUser = require("../utils/createTokenUser");
 };*/
 
 const register = async (req, res) => {
+  console.log(req.files);
   const { username, password } = req.body;
 
   if (!req.files) {
@@ -64,8 +66,6 @@ const register = async (req, res) => {
     }
   );
   fs.unlinkSync(req.files.image.tempFilePath);
-
-  console.log(result);
 
   const isSubscribed = await User.findOne({ username });
 
@@ -107,7 +107,9 @@ const login = async (req, res) => {
   const tokenUser = createTokenUser(userTryingToLog);
   attachCookieToResponse({ res, user: tokenUser });
   console.log(req);
-  res.status(StatusCodes.OK).json({ login: true, username, image: tokenUser.image });
+  res
+    .status(StatusCodes.OK)
+    .json({ login: true, username, image: tokenUser.image });
 };
 
 const logout = async (rq, res) => {
