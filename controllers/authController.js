@@ -11,62 +11,9 @@ const {
 } = require("../utils/attachCookieToResponse");
 const createTokenUser = require("../utils/createTokenUser");
 
-/*const uploadUserImage = async (req, res) => {
-  const userImage = req.files.image;
-  const fileExtension = userImage.name.slice(
-    userImage.name.length - 4,
-    userImage.name.length
-  );
-  const acceptableForms = [".png", ".jpg", "jpeg"];
-  console.log(fileExtension);
-  if (!acceptableForms.includes(fileExtension)) {
-    throw new CustomError.BadRequestError("Please attach image file");
-  }
-
-  const maxSize = 1024 * 1024;
-  if (userImage.size > maxSize) {
-    throw new CustomError.BadRequestError("Please attach image smaller than");
-  }
-  const result = await cloudinary.uploader.upload(
-    req.files.image.tempFilePath,
-    {
-      use_filename: true,
-      folder: "interactiveComments",
-    }
-  );
-  fs.unlinkSync(req.files.image.tempFilePath);
-  res.status(StatusCodes.OK).json({ image: { src: result.secure_url } });
-};*/
-
 const register = async (req, res) => {
-  console.log(req.files);
   const { username, password } = req.body;
-
-  if (!req.files) {
-    throw new CustomError.BadRequestError("Please attach image");
-  }
-
-  const userImage = req.files.image;
-
-  const fileExtension = userImage.name.slice(
-    userImage.name.length - 4,
-    userImage.name.length
-  );
-  const acceptableForms = [".png", ".jpg", "jpeg"];
-
-  if (!acceptableForms.includes(fileExtension)) {
-    throw new CustomError.BadRequestError("Please attach image file");
-  }
-
-  const result = await cloudinary.uploader.upload(
-    req.files.image.tempFilePath,
-    {
-      use_filename: true,
-      folder: "interactiveComments",
-    }
-  );
-  fs.unlinkSync(req.files.image.tempFilePath);
-
+  const image = { png: "temporarystringplaceholder" };
   const isSubscribed = await User.findOne({ username });
 
   if (isSubscribed) {
@@ -76,11 +23,43 @@ const register = async (req, res) => {
   const newUser = await User.create({
     username,
     password,
-    image: { png: result.secure_url },
+    image,
   });
   const tokenUser = createTokenUser(newUser);
   attachCookieToResponse({ res, user: tokenUser });
   res.status(StatusCodes.CREATED).json({ user: tokenUser });
+};
+
+const uploadFoto = async (req, res) => {
+  const { username } = req.body;
+  console.log(req.body);
+  if (!req.files) {
+    throw new CustomError.BadRequestError("Please attach image");
+  }
+  const userImage = req.files.image;
+
+  const fileExtension = userImage.name.slice(
+    userImage.name.length - 4,
+    userImage.name.length
+  );
+  const acceptableForms = [".png", ".jpg", "jpeg"];
+
+  if (!acceptableForms.includes(fileExtension)) {
+    throw new CustomError.BadRequestError("Please attach image file");
+  }
+  const result = await cloudinary.uploader.upload(
+    req.files.image.tempFilePath,
+    {
+      use_filename: true,
+      folder: "interactiveComments",
+    }
+  );
+  fs.unlinkSync(req.files.image.tempFilePath);
+  const userRegistering = await User.findOne({ username });
+  userRegistering.image.png = result.secure_url;
+  await userRegistering.save();
+
+  res.status(StatusCodes.CREATED).json({ msg: ok });
 };
 
 const login = async (req, res) => {
@@ -121,4 +100,4 @@ const logout = async (rq, res) => {
   res.status(StatusCodes.OK).json({ msg: "user logged out!" });
 };
 
-module.exports = { register, login, logout };
+module.exports = { register, login, logout, uploadFoto };
