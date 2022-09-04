@@ -18,7 +18,7 @@ cloudinary.config({
   secure: true,
 });
 const cors = require("cors");
-// Lets assoume the code was added
+
 app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
