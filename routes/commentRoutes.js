@@ -13,12 +13,12 @@ const router = express.Router();
 router
   .route("/comments")
   .post(authenticateUser, createComment)
-  .get(getAllComments);
+  .get(authenticateUser, getAllComments);
 
 router
   .route("/comments/:id")
   .post(authenticateUser, replyToComment)
-  .patch(changeScore)
-  .delete(deleteComment);
+  .patch(authenticateUser, changeScore)
+  .delete(authenticateUser, deleteComment);
 
 module.exports = router;
