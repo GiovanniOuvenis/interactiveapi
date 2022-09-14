@@ -12,7 +12,7 @@ const attachCookieToResponse = ({ res, user }) => {
   const oneD = 86400000;
 
   res.cookie("token", token, {
-    httpOnly: true,
+    httpOnly: false,
     expires: new Date(Date.now() + oneD),
     secure: process.env.NODE_ENV === "production",
     signed: true,

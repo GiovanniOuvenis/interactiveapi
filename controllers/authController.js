@@ -27,12 +27,13 @@ const register = async (req, res) => {
   });
   const tokenUser = createTokenUser(newUser);
   attachCookieToResponse({ res, user: tokenUser });
-  res.status(StatusCodes.CREATED).json({ user: tokenUser });
+
+  res.status(StatusCodes.CREATED).json({ username: tokenUser.username });
 };
 
 const uploadFoto = async (req, res) => {
   const { username } = req.body;
-  console.log(req.body);
+
   if (!req.files) {
     throw new CustomError.BadRequestError("Please attach image");
   }
@@ -59,7 +60,7 @@ const uploadFoto = async (req, res) => {
   userRegistering.image.png = result.secure_url;
   await userRegistering.save();
 
-  res.status(StatusCodes.CREATED).json({ msg: ok });
+  res.status(StatusCodes.CREATED).json({ pic: result.secure_url });
 };
 
 const login = async (req, res) => {
@@ -85,7 +86,7 @@ const login = async (req, res) => {
 
   const tokenUser = createTokenUser(userTryingToLog);
   attachCookieToResponse({ res, user: tokenUser });
-  console.log(req);
+
   res
     .status(StatusCodes.OK)
     .json({ login: true, username, image: tokenUser.image });

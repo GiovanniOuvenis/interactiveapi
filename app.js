@@ -3,6 +3,7 @@ require("express-async-errors");
 const express = require("express");
 const app = express();
 const appProcess = require("process");
+
 const connectFunc = require("./db/connectMongo");
 const authRouter = require("./routes/authRoutes");
 const commentRouter = require("./routes/commentRoutes");
@@ -23,7 +24,6 @@ app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
 app.use(express.static("./public"));
-
 app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser(appProcess.env.JWT_SECRET));
 app.use("/intcommapi/v1/auth", authRouter);

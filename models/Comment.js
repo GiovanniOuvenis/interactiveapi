@@ -17,6 +17,9 @@ const CommentSchema = new mongoose.Schema(
     replies: {
       type: Array,
     },
+    whoVoted: {
+      type: Array,
+    },
   },
   { timestamps: true }
 );
