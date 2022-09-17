@@ -87,6 +87,7 @@ const login = async (req, res) => {
   const tokenUser = createTokenUser(userTryingToLog);
   attachCookieToResponse({ res, user: tokenUser });
 
+  console.log(res.signedCookies);
   res
     .status(StatusCodes.OK)
     .json({ login: true, username, image: tokenUser.image });
