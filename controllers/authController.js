@@ -2,9 +2,10 @@ const { User } = require("../models/User");
 const CustomError = require("../errors/index");
 const { StatusCodes } = require("http-status-codes");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
-
+const allowed = require("../config/allowedOrigins");
 const {
   attachCookieToResponse,
   createJWT,
@@ -86,8 +87,14 @@ const login = async (req, res) => {
 
   const tokenUser = createTokenUser(userTryingToLog);
   attachCookieToResponse({ res, user: tokenUser });
+  /* const accessToken = jwt.sign(
+    {
+      payload: tokenUser,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );*/
 
-  console.log(res.signedCookies);
   res
     .status(StatusCodes.OK)
     .json({ login: true, username, image: tokenUser.image });

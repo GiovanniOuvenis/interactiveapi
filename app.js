@@ -3,7 +3,7 @@ require("express-async-errors");
 const express = require("express");
 const app = express();
 const appProcess = require("process");
-
+const corsOptions = require("./config/corsOptions");
 const connectFunc = require("./db/connectMongo");
 const authRouter = require("./routes/authRoutes");
 const commentRouter = require("./routes/commentRoutes");
@@ -11,6 +11,7 @@ const cookieParser = require("cookie-parser");
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandling = require("./middleware/error-handler");
 const fileUpload = require("express-fileupload");
+const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -18,10 +19,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET,
   secure: true,
 });
-const cors = require("cors");
 
 app.set("trust proxy", 1);
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static("./public"));
 app.use(fileUpload({ useTempFiles: true }));
