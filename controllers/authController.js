@@ -89,27 +89,9 @@ const login = async (req, res) => {
   const accessToken = jwt.sign({ payload: tokenUser }, process.env.JWT_SECRET, {
     expiresIn: "10s",
   });
-  const refreshToken = jwt.sign(
-    { payload: tokenUser },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "1d",
-    }
-  );
 
-  /* const accessToken = jwt.sign(
-    {
-      payload: tokenUser,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );*/
-  res.cookie("jwt", refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "None",
-    maxAge: 24 * 60 * 60 * 1000,
-  });
+  attachCookieToResponse({ res, user: tokenUser });
+
   res
     .status(StatusCodes.OK)
     .json({ username, image: tokenUser.image, accessToken });
