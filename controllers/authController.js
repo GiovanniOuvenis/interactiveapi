@@ -87,6 +87,7 @@ const login = async (req, res) => {
 
   const tokenUser = createTokenUser(userTryingToLog);
   attachCookieToResponse({ res, user: tokenUser });
+
   /* const accessToken = jwt.sign(
     {
       payload: tokenUser,
