@@ -20,6 +20,9 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please provide password"],
       minlength: 6,
     },
+    refreshToken : {
+      type: String,
+    }
   },
   {
     methods: {
