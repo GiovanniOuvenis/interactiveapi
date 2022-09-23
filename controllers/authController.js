@@ -14,7 +14,9 @@ const createTokenUser = require("../utils/createTokenUser");
 
 const register = async (req, res) => {
   const { username, password } = req.body;
-  const image = { png: "temporarystringplaceholder" };
+  const tempString = "temporarystringplaceholder";
+  const image = { png: tempString };
+
   const isSubscribed = await User.findOne({ username });
 
   if (isSubscribed) {
@@ -25,6 +27,7 @@ const register = async (req, res) => {
     username,
     password,
     image,
+    refreshToken: tempString,
   });
   const tokenUser = createTokenUser(newUser);
   attachCookieToResponse({ res, user: tokenUser });
@@ -90,7 +93,22 @@ const login = async (req, res) => {
     expiresIn: "10s",
   });
 
-  attachCookieToResponse({ res, user: tokenUser });
+  const refreshToken = jwt.sign(
+    { payload: tokenUser },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+  // Saving refreshToken with current user
+  userTryingToLog.refreshToken = refreshToken;
+  const result = await userTryingToLog.save();
+
+  // Creates Secure Cookie with refresh token
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
 
   res
     .status(StatusCodes.OK)
@@ -106,4 +124,46 @@ const logout = async (rq, res) => {
   res.status(StatusCodes.OK).json({ msg: "user logged out!" });
 };
 
-module.exports = { register, login, logout, uploadFoto };
+const refreshTokenController = async (req, res) => {
+  const cookies = req.cookies;
+
+  if (!cookies?.jwt) {
+    throw new CustomError.UnauthenticatedError("No cookie in request");
+  }
+  const refreshToken = cookies.jwt;
+
+  const foundUser = await User.findOne({ refreshToken }).exec();
+  if (!foundUser) {
+    throw new CustomError.UnauthorizedError(
+      "Not authorized to perform this action"
+    );
+  }
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+    if (err || foundUser.username !== decoded.payload.username) {
+      console.log(decoded.payload.username);
+      throw new CustomError.UnauthorizedError("Not authorized");
+    }
+
+    const accessToken = jwt.sign(
+      {
+        UserInfo: {
+          username: decoded.username,
+        },
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "10s" }
+    );
+    res.json({ accessToken });
+  });
+
+  console.log(accessToken);
+  res.status(StatusCodes.OK).json("ok verified");
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  uploadFoto,
+  refreshTokenController,
+};
