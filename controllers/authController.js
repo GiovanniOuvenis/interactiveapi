@@ -126,9 +126,9 @@ const logout = async (rq, res) => {
 
 const refreshTokenController = async (req, res) => {
   const cookies = req.cookies;
-
+  console.log(req.cookies);
   if (!cookies?.jwt) {
-    throw new CustomError.UnauthenticatedError("No cookie in request");
+    res.status(StatusCodes.FORBIDDEN).json("No cookie");
   }
   const refreshToken = cookies.jwt;
 
@@ -156,7 +156,6 @@ const refreshTokenController = async (req, res) => {
     res.json({ accessToken });
   });
 
-  console.log(accessToken);
   res.status(StatusCodes.OK).json("ok verified");
 };
 
