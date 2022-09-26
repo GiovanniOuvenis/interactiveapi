@@ -12,42 +12,60 @@ const createComment = async (req, res) => {
     user: { username, _id },
     replies: [],
     whoVoted: [],
+    isReply: false,
   });
   res.status(StatusCodes.CREATED).json({ comment: true });
 };
 
 const getAllComments = async (req, res) => {
   const result = await Comment.aggregate([
-    {
-      $sort: {
-        score: -1,
+    [
+      {
+        $match: {
+          isReply: false,
+        },
       },
-    },
+      {
+        $sort: {
+          score: -1,
+        },
+      },
+    ],
   ]);
   res.status(StatusCodes.OK).json({ comments: result });
 };
 
 const changeScore = async (req, res) => {
+  const { username } = req.body;
   const { id } = req.params;
   const { increase } = req.body;
   const currentComment = await Comment.findOne({ _id: id });
-  if (increase === "true") {
+  const condition = currentComment.whoVoted.includes(username);
+
+  if (!condition && increase === "true") {
     currentComment.score++;
-  } else {
-    currentComment.score--;
+    currentComment.whoVoted.push(username);
   }
+  if (!condition && increase === "false") {
+    currentComment.score--;
+    currentComment.whoVoted.push(username);
+  }
+
   await currentComment.save();
   res.status(StatusCodes.OK).json({ score: currentComment.score });
 };
 
 const deleteComment = async (req, res, next) => {
   const { id } = req.params;
+
   const { username } = req.body;
   const foundComment = await Comment.findOne({ _id: id });
-  const commentAuthor = foundComment.user[0].username;
+  const commentAuthor = foundComment.user.username;
 
-  if (commentAuthor != username) {
-    throw new CustomError.UnauthorizedError("ACTION NOT PERMITTED");
+  if (commentAuthor !== username) {
+    throw new CustomError.UnauthorizedError(
+      "Not authorized to perform this action"
+    );
   }
 
   await Comment.findOneAndDelete({ _id: id });
@@ -62,15 +80,18 @@ const replyToComment = async (req, res) => {
   const whoReplies = await User.findOne({ username });
   const replyScore = 0;
   const replyReplies = [];
+  const votesFrom = [];
 
   const replyDocument = await Comment.create({
     content: content,
     score: replyScore,
     user: whoReplies,
+    whoVoted: votesFrom,
+    isReply: true,
     replies: replyReplies,
   });
 
-  await commentToReply.replies.push(replyDocument);
+  commentToReply.replies.push(replyDocument);
   await commentToReply.save();
 
   res.status(StatusCodes.CREATED).json({ commentWithReplies: commentToReply });

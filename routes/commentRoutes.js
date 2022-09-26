@@ -10,15 +10,12 @@ const { authenticateUser } = require("../middleware/authenticate");
 
 const router = express.Router();
 
-router
-  .route("/comments")
-  .post(authenticateUser, createComment)
-  .get(authenticateUser, getAllComments);
+router.route("/comments").post(createComment).get(getAllComments);
 
 router
   .route("/comments/:id")
-  .post(authenticateUser, replyToComment)
-  .patch(authenticateUser, changeScore)
-  .delete(authenticateUser, deleteComment);
+  .post(replyToComment)
+  .patch(changeScore)
+  .delete(deleteComment);
 
 module.exports = router;

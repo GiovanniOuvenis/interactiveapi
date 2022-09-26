@@ -126,7 +126,7 @@ const logout = async (rq, res) => {
 
 const refreshTokenController = async (req, res) => {
   const cookies = req.cookies;
-  console.log(req.cookies);
+
   if (!cookies?.jwt) {
     res.status(StatusCodes.FORBIDDEN).json("No cookie");
   }
@@ -138,6 +138,7 @@ const refreshTokenController = async (req, res) => {
       "Not authorized to perform this action"
     );
   }
+  const un = foundUser.username;
   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err || foundUser.username !== decoded.payload.username) {
       console.log(decoded.payload.username);
@@ -153,10 +154,10 @@ const refreshTokenController = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "10s" }
     );
-    res.json({ accessToken });
+    res.json({ accessToken, un });
   });
 
-  res.status(StatusCodes.OK).json("ok verified");
+  res.status(StatusCodes.OK);
 };
 
 module.exports = {

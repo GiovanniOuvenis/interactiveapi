@@ -15,7 +15,7 @@ const attachCookieToResponse = ({ res, user }) => {
     httpOnly: true,
 
     expires: new Date(Date.now() + oneD),
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
 
     sameSite: "None",
   });

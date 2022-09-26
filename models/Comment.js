@@ -20,7 +20,11 @@ const CommentSchema = new mongoose.Schema(
     whoVoted: {
       type: Array,
     },
+    isReply: {
+      type: Boolean,
+    },
   },
+
   { timestamps: true }
 );
 
