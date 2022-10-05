@@ -139,6 +139,7 @@ const refreshTokenController = async (req, res) => {
     );
   }
   const un = foundUser.username;
+  const pic = foundUser.image.png;
   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err || foundUser.username !== decoded.payload.username) {
       console.log(decoded.payload.username);
@@ -154,7 +155,7 @@ const refreshTokenController = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "10s" }
     );
-    res.json({ accessToken, un });
+    res.json({ accessToken, un, pic });
   });
 
   res.status(StatusCodes.OK);

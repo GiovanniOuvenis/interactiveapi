@@ -32,26 +32,27 @@ const getAllComments = async (req, res) => {
       },
     ],
   ]);
+
   res.status(StatusCodes.OK).json({ comments: result });
 };
 
-const changeScore = async (req, res) => {
-  const { username } = req.body;
-  const { id } = req.params;
-  const { increase } = req.body;
+const vote = async (req, res) => {
+  const { username, id, increase } = req.body;
+
   const currentComment = await Comment.findOne({ _id: id });
   const condition = currentComment.whoVoted.includes(username);
 
-  if (!condition && increase === "true") {
+  if (!condition && increase) {
     currentComment.score++;
     currentComment.whoVoted.push(username);
   }
-  if (!condition && increase === "false") {
+  if (!condition && !increase) {
     currentComment.score--;
     currentComment.whoVoted.push(username);
   }
 
   await currentComment.save();
+
   res.status(StatusCodes.OK).json({ score: currentComment.score });
 };
 
@@ -100,6 +101,6 @@ module.exports = {
   createComment,
   deleteComment,
   getAllComments,
-  changeScore,
+  vote,
   replyToComment,
 };

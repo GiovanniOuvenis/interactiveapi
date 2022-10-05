@@ -3,7 +3,7 @@ const {
   createComment,
   deleteComment,
   getAllComments,
-  changeScore,
+  vote,
   replyToComment,
 } = require("../controllers/commentController");
 const { authenticateUser } = require("../middleware/authenticate");
@@ -15,7 +15,7 @@ router.route("/comments").post(createComment).get(getAllComments);
 router
   .route("/comments/:id")
   .post(replyToComment)
-  .patch(changeScore)
+  .patch(vote)
   .delete(deleteComment);
 
 module.exports = router;
