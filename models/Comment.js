@@ -11,15 +11,17 @@ const CommentSchema = new mongoose.Schema(
     score: {
       type: Number,
     },
-    user: {
-      type: { username: String },
+    authorName: {
+      type: String,
+    },
+    authorPicture: {
+      type: String,
     },
     replies: {
       type: Array,
     },
-    whoVoted: {
-      type: Array,
-    },
+    upVotesBy: { type: Array },
+    downVotesBy: { type: Array },
     isReply: {
       type: Boolean,
     },

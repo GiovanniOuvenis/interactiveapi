@@ -5,13 +5,15 @@ const CustomError = require("../errors");
 
 const createComment = async (req, res) => {
   const { username, content } = req.body;
-  const { _id } = await User.findOne({ username });
+  const whoCommented = await User.findOne({ username });
   const newComment = await Comment.create({
     content,
     score: 0,
-    user: { username, _id },
+    authorName: username,
+    authorPicture: whoCommented.image.png,
     replies: [],
-    whoVoted: [],
+    upVotesBy: [],
+    downVotesBy: [],
     isReply: false,
   });
   res.status(StatusCodes.CREATED).json({ comment: true });
@@ -37,20 +39,42 @@ const getAllComments = async (req, res) => {
 };
 
 const vote = async (req, res) => {
-  const { username, id, increase } = req.body;
-
+  const { username, id, type } = req.body;
   const currentComment = await Comment.findOne({ _id: id });
-  const condition = currentComment.whoVoted.includes(username);
+  const upVoted = currentComment.upVotesBy.includes(username);
+  const downVoted = currentComment.downVotesBy.includes(username);
 
-  if (!condition && increase) {
+  if (type === "plus" && upVoted) {
+    currentComment.score--;
+    const newVoters = currentComment.upVotesBy.filter((un) => {
+      return un != username;
+    });
+    currentComment.upVotesBy = newVoters;
+  }
+  if (type === "plus" && !upVoted) {
     currentComment.score++;
+    currentComment.upVotesBy.push(username);
+  }
+  if (type === "minus" && downVoted) {
+    currentComment.score++;
+    const newVoters = currentComment.upVotesBy.filter((un) => {
+      return un != username;
+    });
+    currentComment.downVotesBy = newVoters;
+  }
+  if (type === "minus" && !downVoted) {
+    currentComment.score--;
+    currentComment.downVotesBy.push(username);
+  }
+
+  /* if (voted) {
+    currentComment.score--;
     currentComment.whoVoted.push(username);
   }
   if (!condition && !increase) {
     currentComment.score--;
     currentComment.whoVoted.push(username);
-  }
-
+  }*/
   await currentComment.save();
 
   res.status(StatusCodes.OK).json({ score: currentComment.score });

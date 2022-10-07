@@ -59,12 +59,24 @@ const uploadFoto = async (req, res) => {
       folder: "interactiveComments",
     }
   );
-  fs.unlinkSync(req.files.image.tempFilePath);
   const userRegistering = await User.findOne({ username });
-  userRegistering.image.png = result.secure_url;
+
+  const splitted = result.secure_url.split("/");
+  const nameOfFile = splitted[splitted.length - 1];
+  const transformedImage = cloudinary.url(`interactiveComments/${nameOfFile}`, {
+    height: 50,
+    radius: "max",
+    width: 50,
+    crop: "thumb",
+    gravity: "face",
+  });
+
+  userRegistering.image.png = transformedImage;
+
+  fs.unlinkSync(req.files.image.tempFilePath);
   await userRegistering.save();
 
-  res.status(StatusCodes.CREATED).json({ pic: result.secure_url });
+  res.status(StatusCodes.CREATED).json({ pic: transformedImage });
 };
 
 const login = async (req, res) => {
@@ -98,11 +110,10 @@ const login = async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
   );
-  // Saving refreshToken with current user
+
   userTryingToLog.refreshToken = refreshToken;
   const result = await userTryingToLog.save();
 
-  // Creates Secure Cookie with refresh token
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
     secure: true,
