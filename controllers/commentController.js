@@ -80,26 +80,15 @@ const vote = async (req, res) => {
   res.status(StatusCodes.OK).json({ score: currentComment.score });
 };
 
-const deleteComment = async (req, res, next) => {
+const deleteComment = async (req, res) => {
   const { id } = req.params;
-
-  const { username } = req.body;
-  const foundComment = await Comment.findOne({ _id: id });
-  const commentAuthor = foundComment.user.username;
-
-  if (commentAuthor !== username) {
-    throw new CustomError.UnauthorizedError(
-      "Not authorized to perform this action"
-    );
-  }
-
   await Comment.findOneAndDelete({ _id: id });
-
   res.status(StatusCodes.OK).json({ msg: "comment succsefully deleted " });
 };
 
 const replyToComment = async (req, res) => {
   const { id } = req.params;
+  console.log(req.params);
   const { content, username } = req.body;
   const commentToReply = await Comment.findOne({ _id: id });
   const whoReplies = await User.findOne({ username });
@@ -110,10 +99,12 @@ const replyToComment = async (req, res) => {
   const replyDocument = await Comment.create({
     content: content,
     score: replyScore,
-    user: whoReplies,
-    whoVoted: votesFrom,
+    authorName: whoReplies.username,
+    authorPicture: whoReplies.image.png,
     isReply: true,
     replies: replyReplies,
+    upVotesBy: [],
+    downVotesBy: [],
   });
 
   commentToReply.replies.push(replyDocument);
