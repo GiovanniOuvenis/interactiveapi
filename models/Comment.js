@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { UserSchema } = require("./User");
 
 const CommentSchema = new mongoose.Schema(
   {
@@ -17,14 +16,17 @@ const CommentSchema = new mongoose.Schema(
     authorPicture: {
       type: String,
     },
-    replies: {
-      type: Array,
-    },
+    replies: { type: Array },
     upVotesBy: { type: Array },
     downVotesBy: { type: Array },
     isReply: {
       type: Boolean,
     },
+    repliesTo: {
+      type: String,
+    },
+
+    level: { type: Number },
   },
 
   { timestamps: true }

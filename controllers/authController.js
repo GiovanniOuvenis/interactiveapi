@@ -11,6 +11,7 @@ const {
   createJWT,
 } = require("../utils/attachCookieToResponse");
 const createTokenUser = require("../utils/createTokenUser");
+const { CLIENT_RENEG_WINDOW } = require("tls");
 
 const register = async (req, res) => {
   const { username, password } = req.body;
@@ -91,9 +92,7 @@ const login = async (req, res) => {
   const userTryingToLog = await User.findOne({ username });
 
   if (!userTryingToLog) {
-    throw new CustomError.UnauthenticatedError(
-      "Username does not exist. You have to register or provide valid username "
-    );
+    throw new CustomError.UnauthenticatedError("Invalid Username");
   }
   const isPasswordCorrect = await userTryingToLog.comparePassword(password);
   if (!isPasswordCorrect) {
@@ -139,7 +138,9 @@ const refreshTokenController = async (req, res) => {
   const cookies = req.cookies;
 
   if (!cookies?.jwt) {
-    res.status(StatusCodes.FORBIDDEN).json("No cookie");
+    throw new CustomError.UnauthenticatedError("no cookie");
+
+    // res.status(StatusCodes.FORBIDDEN).json("No cookie");
   }
   const refreshToken = cookies.jwt;
 
