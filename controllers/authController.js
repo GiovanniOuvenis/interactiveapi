@@ -20,6 +20,22 @@ const register = async (req, res) => {
 
   const isSubscribed = await User.findOne({ username });
 
+  if (!username) {
+    throw new CustomError.BadRequestError(
+      "Please provide username and password"
+    );
+  }
+  if (username.length < 4) {
+    throw new CustomError.BadRequestError(
+      "Username must be at least 4 letters long"
+    );
+  }
+
+  if (password.length < 6) {
+    throw new CustomError.BadRequestError(
+      "Please create a password with at least six characters"
+    );
+  }
   if (isSubscribed) {
     throw new CustomError.BadRequestError("Username already exists");
   }
@@ -65,9 +81,9 @@ const uploadFoto = async (req, res) => {
   const splitted = result.secure_url.split("/");
   const nameOfFile = splitted[splitted.length - 1];
   const transformedImage = cloudinary.url(`interactiveComments/${nameOfFile}`, {
-    height: 50,
+    height: 32,
     radius: "max",
-    width: 50,
+    width: 32,
     crop: "thumb",
     gravity: "face",
   });
@@ -154,7 +170,6 @@ const refreshTokenController = async (req, res) => {
   const pic = foundUser.image.png;
   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err || foundUser.username !== decoded.payload.username) {
-      console.log(decoded.payload.username);
       throw new CustomError.UnauthorizedError("Not authorized");
     }
 

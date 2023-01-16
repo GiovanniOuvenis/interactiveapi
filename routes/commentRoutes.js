@@ -5,8 +5,8 @@ const {
   getAllComments,
   vote,
   replyToComment,
+  editMyComment,
 } = require("../controllers/commentController");
-const { authenticateUser } = require("../middleware/authenticate");
 
 const router = express.Router();
 
@@ -18,4 +18,5 @@ router
   .patch(vote)
   .delete(deleteComment);
 
+router.route("/:id").patch(editMyComment);
 module.exports = router;

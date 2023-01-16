@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema(
     username: {
       type: String,
       required: [true, "Please provide name"],
-      minlength: 3,
+      minlength: 4,
       maxlength: 50,
     },
     password: {
@@ -20,9 +20,9 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please provide password"],
       minlength: 6,
     },
-    refreshToken : {
+    refreshToken: {
       type: String,
-    }
+    },
   },
   {
     methods: {

@@ -17,7 +17,6 @@ const createComment = async (req, res) => {
     downVotesBy: [],
     isReply: false,
     repliesTo: "",
-
     level: 0,
   });
 
@@ -46,13 +45,15 @@ const getAllComments = async (req, res) => {
         authorPicture,
         createdAt,
       } = comment;
+
+      const timeInMiliseconds = createdAt.valueOf();
       auxiliaryObject[comment._id] = {
         _id,
         content,
         score,
         authorName,
         authorPicture,
-        createdAt,
+        timeInMiliseconds,
         replies,
       };
 
@@ -82,27 +83,30 @@ const vote = async (req, res) => {
   const upVoted = currentComment.upVotesBy.includes(username);
   const downVoted = currentComment.downVotesBy.includes(username);
 
-  if (type === "plus" && upVoted) {
+  if (upVoted) {
     currentComment.score--;
-    const newVoters = currentComment.upVotesBy.filter((un) => {
-      return un != username;
+    currentComment.upVotesBy = currentComment.upVotesBy.filter((upVoter) => {
+      return upVoter !== username;
     });
-    currentComment.upVotesBy = newVoters;
   }
-  if (type === "plus" && !upVoted) {
+
+  if (downVoted) {
     currentComment.score++;
-    currentComment.upVotesBy.push(username);
+    currentComment.downVotesBy = currentComment.downVotesBy.filter(
+      (downVoter) => {
+        return downVoter !== username;
+      }
+    );
   }
-  if (type === "minus" && downVoted) {
-    currentComment.score++;
-    const newVoters = currentComment.upVotesBy.filter((un) => {
-      return un != username;
-    });
-    currentComment.downVotesBy = newVoters;
-  }
-  if (type === "minus" && !downVoted) {
-    currentComment.score--;
-    currentComment.downVotesBy.push(username);
+
+  if (!upVoted && !downVoted) {
+    if (type === "plus") {
+      currentComment.score++;
+      currentComment.upVotesBy.push(username);
+    } else if (type === "minus") {
+      currentComment.score--;
+      currentComment.downVotesBy.push(username);
+    }
   }
 
   await currentComment.save();
@@ -119,12 +123,14 @@ const deleteComment = async (req, res) => {
     const commentWithReplies = await Comment.findOne({
       _id: commentToDelete.repliesTo,
     });
-    const newReplies = commentWithReplies.replies.filter((currentReply) => {
-      return currentReply._id.toString() !== idToRemove;
-    });
+    if (commentWithReplies) {
+      const newReplies = commentWithReplies.replies.filter((currentReply) => {
+        return currentReply._id.toString() !== idToRemove;
+      });
 
-    commentWithReplies.replies = [...newReplies];
-    await commentWithReplies.save();
+      commentWithReplies.replies = [...newReplies];
+      await commentWithReplies.save();
+    }
   }
 
   await Comment.deleteOne({ _id: id });
@@ -159,10 +165,25 @@ const replyToComment = async (req, res) => {
 
   res.status(StatusCodes.CREATED).json("ok replied");
 };
+
+const editMyComment = async (req, res) => {
+  const { id } = req.params;
+  const { edited } = req.body;
+
+  const commentToEdit = await Comment.findOne({ _id: id });
+
+  commentToEdit.content = edited;
+
+  await commentToEdit.save();
+
+  res.status(StatusCodes.OK).json("ok edited");
+};
+
 module.exports = {
   createComment,
   deleteComment,
   getAllComments,
   vote,
   replyToComment,
+  editMyComment,
 };
