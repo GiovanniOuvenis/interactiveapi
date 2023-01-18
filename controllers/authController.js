@@ -11,12 +11,31 @@ const {
   createJWT,
 } = require("../utils/attachCookieToResponse");
 const createTokenUser = require("../utils/createTokenUser");
+const { CLIENT_RENEG_WINDOW } = require("tls");
 
 const register = async (req, res) => {
   const { username, password } = req.body;
-  const image = { png: "temporarystringplaceholder" };
+  const tempString = "temporarystringplaceholder";
+  const image = { png: tempString };
+
   const isSubscribed = await User.findOne({ username });
 
+  if (!username) {
+    throw new CustomError.BadRequestError(
+      "Please provide username and password"
+    );
+  }
+  if (username.length < 4) {
+    throw new CustomError.BadRequestError(
+      "Username must be at least 4 letters long"
+    );
+  }
+
+  if (password.length < 6) {
+    throw new CustomError.BadRequestError(
+      "Please create a password with at least six characters"
+    );
+  }
   if (isSubscribed) {
     throw new CustomError.BadRequestError("Username already exists");
   }
@@ -25,6 +44,7 @@ const register = async (req, res) => {
     username,
     password,
     image,
+    refreshToken: tempString,
   });
   const tokenUser = createTokenUser(newUser);
   attachCookieToResponse({ res, user: tokenUser });
@@ -56,12 +76,24 @@ const uploadFoto = async (req, res) => {
       folder: "interactiveComments",
     }
   );
-  fs.unlinkSync(req.files.image.tempFilePath);
   const userRegistering = await User.findOne({ username });
-  userRegistering.image.png = result.secure_url;
+
+  const splitted = result.secure_url.split("/");
+  const nameOfFile = splitted[splitted.length - 1];
+  const transformedImage = cloudinary.url(`interactiveComments/${nameOfFile}`, {
+    height: 32,
+    radius: "max",
+    width: 32,
+    crop: "thumb",
+    gravity: "face",
+  });
+
+  userRegistering.image.png = transformedImage;
+
+  fs.unlinkSync(req.files.image.tempFilePath);
   await userRegistering.save();
 
-  res.status(StatusCodes.CREATED).json({ pic: result.secure_url });
+  res.status(StatusCodes.CREATED).json({ pic: transformedImage });
 };
 
 const login = async (req, res) => {
@@ -76,9 +108,7 @@ const login = async (req, res) => {
   const userTryingToLog = await User.findOne({ username });
 
   if (!userTryingToLog) {
-    throw new CustomError.UnauthenticatedError(
-      "Username does not exist. You have to register or provide valid username "
-    );
+    throw new CustomError.UnauthenticatedError("Invalid Username");
   }
   const isPasswordCorrect = await userTryingToLog.comparePassword(password);
   if (!isPasswordCorrect) {
@@ -86,19 +116,29 @@ const login = async (req, res) => {
   }
 
   const tokenUser = createTokenUser(userTryingToLog);
-  attachCookieToResponse({ res, user: tokenUser });
+  const accessToken = jwt.sign({ payload: tokenUser }, process.env.JWT_SECRET, {
+    expiresIn: "10s",
+  });
 
-  /* const accessToken = jwt.sign(
-    {
-      payload: tokenUser,
-    },
+  const refreshToken = jwt.sign(
+    { payload: tokenUser },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
-  );*/
+  );
+
+  userTryingToLog.refreshToken = refreshToken;
+  const result = await userTryingToLog.save();
+
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
 
   res
     .status(StatusCodes.OK)
-    .json({ login: true, username, image: tokenUser.image });
+    .json({ username, image: tokenUser.image, accessToken });
 };
 
 const logout = async (rq, res) => {
@@ -110,4 +150,48 @@ const logout = async (rq, res) => {
   res.status(StatusCodes.OK).json({ msg: "user logged out!" });
 };
 
-module.exports = { register, login, logout, uploadFoto };
+const refreshTokenController = async (req, res) => {
+  const cookies = req.cookies;
+
+  if (!cookies?.jwt) {
+    throw new CustomError.UnauthenticatedError("no cookie");
+
+    // res.status(StatusCodes.FORBIDDEN).json("No cookie");
+  }
+  const refreshToken = cookies.jwt;
+
+  const foundUser = await User.findOne({ refreshToken }).exec();
+  if (!foundUser) {
+    throw new CustomError.UnauthorizedError(
+      "Not authorized to perform this action"
+    );
+  }
+  const un = foundUser.username;
+  const pic = foundUser.image.png;
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+    if (err || foundUser.username !== decoded.payload.username) {
+      throw new CustomError.UnauthorizedError("Not authorized");
+    }
+
+    const accessToken = jwt.sign(
+      {
+        UserInfo: {
+          username: decoded.username,
+        },
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "10s" }
+    );
+    res.json({ accessToken, un, pic });
+  });
+
+  res.status(StatusCodes.OK);
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  uploadFoto,
+  refreshTokenController,
+};

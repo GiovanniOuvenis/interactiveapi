@@ -11,10 +11,11 @@ const attachCookieToResponse = ({ res, user }) => {
   const token = createJWT({ payload: user });
   const oneD = 86400000;
 
-  res.cookie("token", token, {
+  res.cookie("jwt", token, {
     httpOnly: true,
+
     expires: new Date(Date.now() + oneD),
-    secure: true /*process.env.NODE_ENV === "production"*/,
+    secure: true,
 
     sameSite: "None",
   });

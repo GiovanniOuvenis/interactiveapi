@@ -3,22 +3,20 @@ const {
   createComment,
   deleteComment,
   getAllComments,
-  changeScore,
+  vote,
   replyToComment,
+  editMyComment,
 } = require("../controllers/commentController");
-const { authenticateUser } = require("../middleware/authenticate");
 
 const router = express.Router();
 
-router
-  .route("/comments")
-  .post(authenticateUser, createComment)
-  .get(authenticateUser, getAllComments);
+router.route("/comments").post(createComment).get(getAllComments);
 
 router
   .route("/comments/:id")
-  .post(authenticateUser, replyToComment)
-  .patch(authenticateUser, changeScore)
-  .delete(authenticateUser, deleteComment);
+  .post(replyToComment)
+  .patch(vote)
+  .delete(deleteComment);
 
+router.route("/:id").patch(editMyComment);
 module.exports = router;
