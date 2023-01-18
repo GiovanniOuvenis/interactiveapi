@@ -142,10 +142,14 @@ const replyToComment = async (req, res) => {
   const { username, content } = req.body;
   const whoReplies = await User.findOne({ username });
   const commentToReply = await Comment.findOne({ _id: id });
-  const newContent = `@${commentToReply.authorName}  ${content}`;
+  let newContent = `${content}`;
   const replyScore = 0;
   const replyReplies = [];
   const newLevel = commentToReply.level + 1;
+
+  if (content[0] !== "@") {
+    newContent = `@${commentToReply.authorName}  ${content}`;
+  }
 
   const newComment = await Comment.create({
     content: newContent,
@@ -168,10 +172,16 @@ const replyToComment = async (req, res) => {
 
 const editMyComment = async (req, res) => {
   const { id } = req.params;
-  const { edited } = req.body;
+  let { edited } = req.body;
 
   const commentToEdit = await Comment.findOne({ _id: id });
-
+  const isReply = commentToEdit.isReply;
+  if (isReply && edited[0] !== "@") {
+    const repliesToThis = await Comment.findOne({
+      _id: commentToEdit.repliesTo,
+    });
+    edited = `@${repliesToThis.authorName}` + edited;
+  }
   commentToEdit.content = edited;
 
   await commentToEdit.save();
