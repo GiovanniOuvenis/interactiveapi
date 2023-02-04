@@ -4,7 +4,11 @@ const bcrypt = require("bcryptjs");
 const UserSchema = new mongoose.Schema(
   {
     image: {
-      png: {
+      big: {
+        type: String,
+        required: [true, "Please upload image"],
+      },
+      small: {
         type: String,
         required: [true, "Please upload image"],
       },

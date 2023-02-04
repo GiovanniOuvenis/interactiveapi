@@ -16,7 +16,7 @@ const { CLIENT_RENEG_WINDOW } = require("tls");
 const register = async (req, res) => {
   const { username, password } = req.body;
   const tempString = "temporarystringplaceholder";
-  const image = { png: tempString };
+  const image = { big: tempString, small: tempString };
 
   const isSubscribed = await User.findOne({ username });
 
@@ -80,20 +80,35 @@ const uploadFoto = async (req, res) => {
 
   const splitted = result.secure_url.split("/");
   const nameOfFile = splitted[splitted.length - 1];
-  const transformedImage = cloudinary.url(`interactiveComments/${nameOfFile}`, {
-    height: 32,
-    radius: "max",
-    width: 32,
-    crop: "thumb",
-    gravity: "face",
-  });
+  const transformedImageBig = cloudinary.url(
+    `interactiveComments/${nameOfFile}`,
+    {
+      height: 40,
+      radius: "max",
+      width: 40,
+      crop: "thumb",
+      gravity: "face",
+    }
+  );
 
-  userRegistering.image.png = transformedImage;
+  const transformedImageSmall = cloudinary.url(
+    `interactiveComments/${nameOfFile}`,
+    {
+      height: 32,
+      radius: "max",
+      width: 32,
+      crop: "thumb",
+      gravity: "face",
+    }
+  );
+
+  userRegistering.image.big = transformedImageBig;
+  userRegistering.image.small = transformedImageSmall;
 
   fs.unlinkSync(req.files.image.tempFilePath);
   await userRegistering.save();
 
-  res.status(StatusCodes.CREATED).json({ pic: transformedImage });
+  res.status(StatusCodes.CREATED).json({ pic: userRegistering.image });
 };
 
 const login = async (req, res) => {
@@ -167,7 +182,7 @@ const refreshTokenController = async (req, res) => {
     );
   }
   const un = foundUser.username;
-  const pic = foundUser.image.png;
+  const pic = foundUser.image;
   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err || foundUser.username !== decoded.payload.username) {
       throw new CustomError.UnauthorizedError("Not authorized");
